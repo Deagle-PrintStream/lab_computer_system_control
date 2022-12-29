@@ -1,5 +1,5 @@
-%EE3006.01 ¼ÆËã»ú¿ØÖÆ´óÊµÑé
-%Áõíõâø PB20061256
+%EE3006.01 è®¡ç®—æœºæŽ§åˆ¶å¤§å®žéªŒ
+%åˆ˜çœ­æ€¿ PB20061256
 
 %constants define
 const_m=0.03;
@@ -71,6 +71,7 @@ sys_Gpsi=laplace(sys_Gpsi_t,t,s);
 %{
     delta_psi(s)=sys_Gpsi(s)*u4(s)
 %}
+
 input_u4_t=3e-5 .*[ dirac(t) stepfun(t,0) sin(t)*stepfun(t,0)]';
 input_u4_s=laplace(input_u4_t,t,s);
 delta_psi_s=sys_Gpsi.*input_u4_s;
@@ -78,9 +79,10 @@ delta_psi_t=ilaplace(delta_psi_s,s,t);
 
 figure;
 hold on;
-t=0:t_interval:t_upper;
-plot(t,delta_psi_t);
-%DEBUG: problems occurred with plot function for syms
+fplot(delta_psi_t,[0,t_upper]);
 hold off;
 grid on;
 box on;
+
+%Question 4
+
