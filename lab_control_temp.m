@@ -1,5 +1,5 @@
-%EE3006.01 ¼ÆËã»ú¿ØÖÆ´óÊµÑé
-%Áõíõâø PB20061256
+%EE3006.01 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ´ï¿½Êµï¿½ï¿½
+%ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PB20061256
 
 %constants define
 const_m=0.03;
@@ -71,6 +71,13 @@ fplot(Psi_t,[0,t_upper]);
 hold off;
 grid on;
 box on;
+
+%Question 5
+numG = [-0.03 59.9 200];
+denG = [0.00003 0.03 59.9 200];
+sysG = tf(numG, denG);
+y = step(sysG)+1;
+plot(y);
 
 
 %Question 6
