@@ -1,5 +1,5 @@
-%EE3006.01 è®¡ç®—æœºæŽ§åˆ¶å¤§å®žéªŒ
-%åˆ˜çœ­æ€¿ PB20061256
+%EE3006.01 ¼ÆËã»ú¿ØÖÆ´óÊµÑé
+%Áõíõâø PB20061256
 
 %constants define
 const_m=0.03;
@@ -15,7 +15,7 @@ const_psid=pi/4;
 %variables define
 syms t s; %for time domain and freq domain
 t_interval=0.1;
-t_upper=10;
+t_upper=100;
 
 syms x y z delta_z psi x_dot y_dot z_dot  phi theta delta_psi p q r;
 delta_z=z-const_zd;
@@ -52,37 +52,54 @@ C(4,9)=1;
 [eigVecMat,eigValMat]= eig(A);
 eigVal=diag(eigValMat);
 
-%Question 2
-%{
-    delta_z=Y(3)=X(3)
-    z''=-(3/20)*z'+delta_u1/0.03;
-    delta_psi=Y(4)=X(9)
-    r=psi_dot=psi'
-    psi''=-15*psi'+psi-pi/4+u4/1.5e-5
-%}
 
-sys_Gz_t=dsolve('D2y=-(3/20)*Dy+t/0.03','y(0)=0,Dy(0)=0','t');
-sys_Gz=laplace(sys_Gz_t,t,s);
-
-sys_Gpsi_t=dsolve('D2y=-(15)*Dy+y-pi/4+t/1.5e-5','y(0)=0,Dy(0)=0','t');
-sys_Gpsi=laplace(sys_Gpsi_t,t,s);
 
 %Question 3
 %{
     delta_psi(s)=sys_Gpsi(s)*u4(s)
 %}
-
-input_u4_t=3e-5 .*[ dirac(t) stepfun(t,0) sin(t)*stepfun(t,0)]';
-input_u4_s=laplace(input_u4_t,t,s);
-delta_psi_s=sys_Gpsi.*input_u4_s;
-delta_psi_t=ilaplace(delta_psi_s,s,t);
+k1=1.5e-5;
+k2=3e-5;
+Gpsi_s=k1/(s^2+15*s-1);
+Us=[k2  k2/s  k2/(s^2+1)];
+Psi_s=Gpsi_s.*Us;
+Psi_t=ilaplace(Psi_s);
 
 figure;
 hold on;
-fplot(delta_psi_t,[0,t_upper]);
+fplot(Psi_t,[0,t_upper]);
 hold off;
 grid on;
 box on;
 
-%Question 4
+
+%Question 6
+Td=[1,2,4];
+Pi=[1,2,4];
+color=['-r','-b','-g'];
+sysG_pd=tf(0).*ones(1,3);
+sysG_pi=tf(0).*ones(1,3);
+for i =1:3
+    sysG_pd(i)=tf([Td(i),1],[const_m,0,0]);
+    sysG_pi(i)=tf([1,Pi(i)],[const_m,0,0,0]);
+end
+
+
+figure;
+hold on;
+for i=1:3
+    sysG_c_pd(i)=feedback(sysG_pd(i),1);
+    sysG_c_pi(i)=feedback(sysG_pi(i),1);
+    rlocus(sysG_pd(i),color(i));
+end
+hold off;
+
+%Question 7
+
+kp=0.03;
+Td=4;% swtich for 1,2,4
+sysG_pd=tf([kp*Td,kp],[const_m,k_force,0]);
+margin(sysG_pd);
+
+
 
