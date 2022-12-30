@@ -14,7 +14,6 @@ const_psid=pi/4;
 
 %variables define
 syms t s; %for time domain and freq domain
-t_interval=0.1;
 t_upper=100;
 
 syms x y z delta_z psi x_dot y_dot z_dot  phi theta delta_psi p q r;
@@ -48,58 +47,98 @@ C=zeros(4,12);
 C(1:3,1:3)=eye(3);
 C(4,9)=1;
 
+%--------------------------------------------------------------------------------------------%
+%Here calls the function for each question to plot target graph
+%for example : Q5(50,30);
+
+
 %Question 1
-[eigVecMat,eigValMat]= eig(A);
-eigVal=diag(eigValMat);
-
-
+function [eigVal]=Q1()
+    [eigVecMat,eigValMat]= eig(A);
+    eigVal=diag(eigValMat);
+end
 
 %Question 3
-%{
-    delta_psi(s)=sys_Gpsi(s)*u4(s)
-%}
-k1=1.5e-5;
-k2=3e-5;
-Gpsi_s=k1/(s^2+15*s-1);
-Us=[k2  k2/s  k2/(s^2+1)];
-Psi_s=Gpsi_s.*Us;
-Psi_t=ilaplace(Psi_s);
+function Q3(order,t_upper)
+    syms t s;
+    k1=(1/3)*10^5;
+    k2=3e-5;
+    Gpsi_s=k1/(s^2+15*s);
+    Us=[k2  k2/s  k2/(s^2+1)];
+    Psi_s=Gpsi_s.*Us;
+    Psi_t=ilaplace(Psi_s,s,t);
 
-figure;
-hold on;
-fplot(Psi_t,[0,t_upper]);
-hold off;
-grid on;
-box on;
+    figure;
+    fplot(Psi_t(order),[0,t_upper]);
+end
 
+%Question 4
+function Q4()
+    syms t y;
+    %ought to have parament 'k', but I dont know how to pass it into dsolve()
+    eq=dsolve('D2y+0.15*Dy+0.005*y=0','y(0)=1,Dy(0)=0','t');
+    fplot(eq,[0 100]);
+
+end
+
+%Question 5
+function Q5(kp,kd)
+    T=1e-3;
+    m=0.03;
+    num=[-T,2];
+    z0=1;
+    den=[m*T, 2*m-T*kd, 2*kd-kp*T, 2*kp];
+    sysG=tf(num,den);
+    z_t=step(sysG)+z0;
+    plot(z_t);
+end
 
 %Question 6
-Td=[1,2,4];
-Pi=[1,2,4];
-color=['-r','-b','-g'];
-sysG_pd=tf(0).*ones(1,3);
-sysG_pi=tf(0).*ones(1,3);
-for i =1:3
-    sysG_pd(i)=tf([Td(i),1],[const_m,0,0]);
-    sysG_pi(i)=tf([1,Pi(i)],[const_m,0,0,0]);
-end
+function Q6(order)
+    Td=[1,2,4];
+    Pi=[1,2,4];
+    color=['-r','-b','-g'];
+    sysG_pd=tf(0).*ones(1,3);
+    sysG_pi=tf(0).*ones(1,3);
+    for i =1:3
+        sysG_pd(i)=tf([Td(i),1],[const_m,0,0]);
+        sysG_pi(i)=tf([1,Pi(i)],[const_m,0,0,0]);
+    end
 
-
-figure;
-hold on;
-for i=1:3
-    sysG_c_pd(i)=feedback(sysG_pd(i),1);
-    sysG_c_pi(i)=feedback(sysG_pi(i),1);
-    rlocus(sysG_pd(i),color(i));
+    figure;
+    hold on;
+    for i=1:3
+        sysG_c_pd(i)=feedback(sysG_pd(i),1);
+        sysG_c_pi(i)=feedback(sysG_pi(i),1);
+        rlocus(sysG_pd(order),color(i));
+    end
+    hold off;
 end
-hold off;
 
 %Question 7
+function Q7(order)
+    kp=0.03;
+    Td=[1,2,4];% swtich for 1,2,4
 
-kp=0.03;
-Td=4;% swtich for 1,2,4
-sysG_pd=tf([kp*Td,kp],[const_m,k_force,0]);
-margin(sysG_pd);
+    sysG_pd=tf([kp*Td(order),kp],[const_m,k_force,0]);
+    [Gm,Pm]=margin(sysG_pd);
+    disp(Gm,Pm);
+end
 
+%Question 8
+function [flag]=Q8(k,T,alpha)
+    if(~exist('k','var'))
+        k=1;
+        T=1;
+        alpha=0.5;
+    end
+    num=9.81*k.*[T,1];
+    den=conv([1,0.15,0,0],[alpha*T,1]);
+    sysGo=tf(num,den);
+    sysGc=feedback(sysGo,1);
+    [Gm,Pm,Wcg,Wcp]=margin(sysGc);
+    flag=(Pm>40 & Wcg>1.5);
+    fprintf('Pm=%f,Wcg=%f,If satisfy=%d\n',Pm,Wcg,flag);
+end
 
 
