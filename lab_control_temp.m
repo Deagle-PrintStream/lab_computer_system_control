@@ -47,10 +47,10 @@ C=zeros(4,12);
 C(1:3,1:3)=eye(3);
 C(4,9)=1;
 
-%--------------------------------------------------------------------------------------------%
 %Here calls the function for each question to plot target graph
 %for example : Q5(50,30);
-
+%Q9(0.1,1,0.1);
+Q8(2e-12,10,0.1);
 
 %Question 1
 function [eigVal]=Q1()
@@ -59,7 +59,10 @@ function [eigVal]=Q1()
 end
 
 %Question 3
-function Q3(order,t_upper)
+%{
+    delta_psi(s)=sys_Gpsi(s)*u4(s)
+%}
+function []=Q3(order,t_upper)
     syms t s;
     k1=(1/3)*10^5;
     k2=3e-5;
@@ -69,13 +72,16 @@ function Q3(order,t_upper)
     Psi_t=ilaplace(Psi_s,s,t);
 
     figure;
+    hold on;
     fplot(Psi_t(order),[0,t_upper]);
+    hold off;
+    grid on;
+    box on;
 end
 
 %Question 4
 function Q4()
     syms t y;
-    %ought to have parament 'k', but I dont know how to pass it into dsolve()
     eq=dsolve('D2y+0.15*Dy+0.005*y=0','y(0)=1,Dy(0)=0','t');
     fplot(eq,[0 100]);
 
@@ -104,41 +110,59 @@ function Q6(order)
         sysG_pd(i)=tf([Td(i),1],[const_m,0,0]);
         sysG_pi(i)=tf([1,Pi(i)],[const_m,0,0,0]);
     end
-
     figure;
     hold on;
     for i=1:3
         sysG_c_pd(i)=feedback(sysG_pd(i),1);
-        sysG_c_pi(i)=feedback(sysG_pi(i),1);
+        %sysG_c_pi(i)=feedback(sysG_pi(i),1);
         rlocus(sysG_pd(order),color(i));
     end
     hold off;
 end
-
 %Question 7
 function Q7(order)
     kp=0.03;
-    Td=[1,2,4];% swtich for 1,2,4
-
+    Td=[1,2,4];
     sysG_pd=tf([kp*Td(order),kp],[const_m,k_force,0]);
+
     [Gm,Pm]=margin(sysG_pd);
-    disp(Gm,Pm);
 end
 
 %Question 8
-function [flag]=Q8(k,T,alpha)
+function Q8(k,T,alpha)
     if(~exist('k','var'))
-        k=1;
-        T=1;
-        alpha=0.5;
+        k=2e-5;
+        T=20;
+        alpha=0.1;
     end
     num=9.81*k.*[T,1];
     den=conv([1,0.15,0,0],[alpha*T,1]);
     sysGo=tf(num,den);
     sysGc=feedback(sysGo,1);
     [Gm,Pm,Wcg,Wcp]=margin(sysGc);
-    flag=(Pm>40 & Wcg>1.5);
+    flag=(Pm>40 );
     fprintf('Pm=%f,Wcg=%f,If satisfy=%d\n',Pm,Wcg,flag);
+    z_t=step(sysGc);
+    plot(z_t);
 end
 
-
+%Question 9
+function Q9(k,T,alpha)
+    if(~exist('k','var')
+	k=0.1;
+	T=1;
+	alpha=0.1;
+    end
+    num=49.05*k.*[T,1];
+    den=conv([1,0.15,0],conv([1,5],[alpha*T,1]));
+    sysGo=tf(num,den);
+    sysGc=feedback(sysGo,1);
+    [Gm,Pm,Wcg,Wcp]=margin(sysGc);
+    finalvalue=1;
+    [y,t]=step(sysGc);
+    plot(t,y);
+    [Ymax,k]=max(y);
+    timetopeak=t(k);
+    percentovershoot=100*(Ymax-finalvalue)/finalvalue;
+    fprintf('Wcg=%f,tP=%f,percOS=%f\n',Wcg,timetopeak,percentovershoot);
+end
